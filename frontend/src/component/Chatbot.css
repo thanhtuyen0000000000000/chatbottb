@@ -1,0 +1,521 @@
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.chatbot-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.history-container {
+  width: 10%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.history-container h3 {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.history-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.history-item:hover {
+  background-color: #f2f2f2;
+}
+
+.chatbot-container {
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-header {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.message.bot pre, .message.user pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message {
+  max-width: 80%;
+  padding: 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+}
+
+.message.user {
+  background-color: #e3f2fd;
+  align-self: flex-end;
+  text-align: justify;
+}
+
+.message.bot {
+  background-color: #e0e0e0;
+  align-self: flex-start;
+  text-align: justify;
+}
+
+.chatbot-input {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+}
+
+.chatbot-input button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.chatbot-input button:hover {
+  background-color: #0056b3;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  color: #888;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #888;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.message-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.message-container.user {
+  flex-direction: row-reverse;
+}
+
+.message-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+@keyframes blink {
+  0%, 80%, 100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.file-upload-container {
+  width: 10%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.file-upload-container h3 {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+}
+
+.csv-table {
+  width: 10%;
+  border-collapse: collapse;
+}
+
+.csv-table th,
+.csv-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.csv-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+} */
+/* General styling */
+.chatbot-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f7f8fa;
+  /* font-family: Arial, sans-serif; */
+  font-family: Arial, Arial;
+}
+
+.chatbot-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #6f8aa8;
+  color: #ffffff;
+}
+
+.toggle-history-button,
+.toggle-csv-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.toggle-history-button img 
+{
+  width: 40px;
+  height: 40px;
+}
+
+.toggle-csv-button img {
+  width: 50px;
+  height: 50px;
+}
+
+.chatbot-content {
+  display: flex;
+  flex: 1;
+}
+
+.chat-history {
+  width: 20%;
+  background-color: #ffffff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  overflow-y: auto; /* Thêm thanh cuộn riêng cho history-panel */
+  
+}
+
+.chat-history.hidden {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.chat-history-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.chat-history-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+}
+
+.chat-history-item {
+  padding: 10px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+.chat-history-item:hover {
+  background-color: #e6f7ff;
+}
+
+.chatbot-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* .chatbot-container.expanded {
+  margin-right: 20%;
+} */
+
+.chatbot-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  overflow-y: auto; /* Thanh cuộn cho khu vực chính */
+}
+
+.chatbot-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.message-container {
+  display: flex;
+  margin-bottom: 10px;
+  /* align-items: flex-start; */
+  align-items: center;
+  position: relative;
+}
+.message-container.user {
+  justify-content: flex-end;
+}
+.message-container.bot {
+  justify-content: flex-start;
+}
+
+.message-container.user .message-icon {
+  order: 2; /* Ensures the icon appears after the user message */
+}
+
+.message-container.bot .message-icon {
+  order: 0; /* Ensures the icon appears before the bot message */
+} 
+.chatbot-container.expanded {
+  margin-right: 0; /* Adjust for hidden CSV panel */
+}
+
+.chat-history.hidden + .chatbot-container {
+  margin-left: 0; /* Adjust for hidden history panel */
+}
+.message-icon {
+  width: 50px;
+  height: 50px;
+  position: relative;
+  margin-right: 10px;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 16px; /* Increase font size */
+  line-height: 1.5; /* Improve readability */
+  word-wrap: break-word;
+
+}
+
+.message.user {
+  background-color: #e6f7ff;
+  align-self: flex-end;
+  /* font-family: Arial, Helvetica, sans-serif; */
+}
+
+.message.bot {
+  background-color: #f1f1f1;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #ccc;
+  border-radius: 50%;
+  margin-right: 5px;
+  animation: typing 1.5s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.chatbot-input {
+  display: flex;
+  gap: 10px;
+}
+
+.chatbot-input input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.chatbot-input button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chatbot-input button:hover {
+  background-color: #0056b3;
+}
+
+.csv-container {
+  width: 20%; /* Đảm bảo phần CSV chiếm 20% màn hình */
+  background-color: #ffffff;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 10px; 
+  transition: all 0.3s ease;
+}
+
+.csv-container.hidden {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.csv-table-wrapper {
+  flex-grow: 1; /* Cho phép bảng mở rộng theo chiều cao */
+  overflow-y: auto; /* Thanh cuộn dọc riêng cho bảng CSV */
+  overflow-x: auto; /* Thanh cuộn ngang nếu bảng quá rộng */
+  margin-top: 10px;
+  margin-bottom: 10px; /* Khoảng cách dưới bảng để phần phân trang không dính vào */
+}
+
+.csv-table {
+  width: max-content; /* Đảm bảo bảng có thể mở rộng ra ngoài nếu có nhiều cột */
+  border-collapse: collapse;
+  table-layout: auto; /* Cột có thể mở rộng theo nội dung */
+}
+
+.csv-table th,
+.csv-table td {
+  border: 1px solid #ddd;
+  padding: 8px; /* Đảm bảo padding đủ để văn bản không bị sát viền */
+  text-overflow: ellipsis; /* Thêm dấu ba chấm khi văn bản quá dài */
+  overflow: hidden;
+  white-space: nowrap; /* Ngăn văn bản tràn ra ngoài */
+}
+
+.csv-table th {
+  background-color: #f2f2f2;
+  text-align: left;
+  font-weight: normal;
+}
+
+.csv-table td {
+  font-size: 0.9em;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap; /* Cho phép các nút phân trang xuống hàng khi quá rộng */
+  gap: 5px; /* Khoảng cách giữa các nút */
+}
+
+.pagination button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.8em;
+  white-space: nowrap; /* Đảm bảo văn bản không bị xuống dòng */
+}
+
+.pagination button:hover {
+  background-color: #f2f2f2;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: #ffffff;
+  border-color: #007bff;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
