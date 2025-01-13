@@ -63,6 +63,10 @@ class SQLiteManager:
         columns = ", ".join(
             f"[{col}] {self.map_dtype(dtype)}" for col, dtype in zip(data.columns, data.dtypes)
         )
+
+        # Kiểm tra và xóa bảng cũ nếu bảng đã tồn tại
+        self.cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+        
         create_table_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
             {columns}

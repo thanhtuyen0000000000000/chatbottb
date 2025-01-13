@@ -1,70 +1,104 @@
-import  { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+// File: Chatbot.jsx
+import  { useState, useEffect } from 'react'; 
+import ChatHeader from './ChatHeader';
+import ChatHistory from './ChatHistory';
+ import ChatMain from './ChatMain';
+import CsvContainer from './CsvContainer';
 import './Chatbot.css';
-import robotIcon from '../asset/robot_icon.png';
-import userIcon from '../asset/user.png';
-import historyIcon from '../asset/history_icon.png'; // Icon cho ẩn/hiện lịch sử
-import csvIcon from '../asset/csv_icon.png'; // Icon cho ẩn/hiện CSV
+import axios from 'axios';
+
 
 function Chatbot() {
-  const [userInput, setUserInput] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [csvData, setCsvData] = useState([]);
-  const [isCsvVisible, setIsCsvVisible] = useState(true);
-  const [isHistoryVisible, setIsHistoryVisible] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(10); // Number of rows to display per page
-  const messagesEndRef = useRef(null);
 
-  const toggleCsvVisibility = () => {
-    setIsCsvVisible(!isCsvVisible);
+  const [messages, setMessages] = useState([]);  // Khởi tạo mảng rỗng cho messages
+  const [csvData, setCsvData] = useState([]); // Khởi tạo csvData là mảng rỗng
+  const [showCsv, setShowCsv] = useState(false); // Trạng thái để điều khiển việc ẩn/hiện CsvContainer
+  const [showHistory, setShowHistory] = useState(true);  // Trạng thái để hiển thị/ẩn ChatHistory
+
+  const [sessions, setSessions] = useState([]); // Mô phỏng data sessions
+  const [selectedSession, setSelectedSession] = useState(null);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/get_sessions/');
+        const fetchedSessions = response.data.sessions; // Cập nhật danh sách session
+
+        // Loại bỏ session trùng lặp
+        setSessions((prevSessions) => {
+          const sessionMap = new Map();
+          [...prevSessions, ...fetchedSessions].forEach((session) => {
+            sessionMap.set(session.session_id, session);
+          });
+          return Array.from(sessionMap.values()); // Loại bỏ session trùng
+        });
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+      }
+    };
+
+    fetchSessions();
+  }, []);
+
+  const onSessionClick = async (session_id) => {
+    try {
+      const response = await fetch(`http://localhost:8000/get_session_data/${session_id}/`);
+      const data = await response.json();
+      
+      // Chuyển đổi dữ liệu thành định dạng phù hợp với ChatMain
+      const formattedMessages = data.data.flatMap(item => [
+        {
+          sender: 'user', // Câu hỏi từ người dùng
+          text: `${item.query}`,
+          timestamp: item.timestamp,
+        },
+        {
+          sender: 'bot', // Câu trả lời từ bot
+          text: `${item.answer}`,
+          timestamp: item.timestamp,
+        },
+      ]);
+  
+      setMessages(formattedMessages); // Cập nhật messages
+      setSelectedSession(data.session_id); // Cập nhật session_id
+
+      // Kiểm tra và cập nhật CSV data nếu có
+    if (data.file_info && data.file_info.filename) {
+      console.log("File info found:", data.file_info.filename);
+      setCsvData([data.file_info.headers, ...data.file_info.data]); // Hiển thị file
+      setShowCsv(true); // Hiển thị CsvContainer
+    } else {
+      setCsvData([]); // Xóa dữ liệu CSV nếu không có file
+      setShowCsv(false);
+    }
+    } catch (error) {
+      console.error('Error fetching session data:', error);
+    }
   };
 
-  const toggleHistoryVisibility = () => {
-    setIsHistoryVisible(!isHistoryVisible);
-  };
-
-  const handleSendMessage = async () => {
-    if (!userInput.trim()) return;
-
-    const currentInput = userInput;
-    setUserInput('');
-
-    const newMessages = [...messages, { sender: 'user', text: currentInput }];
-    setMessages(newMessages);
-
-    setIsTyping(true);
+  const handleSendMessage = async (message) => {  // Thêm 'async' vào đây
+    // Gửi tin nhắn và thêm vào `messages`
+    setMessages([...messages, { sender: 'user', text: message }]);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/get_answer/', { query: currentInput });
-      let botReply = response.data.results;
-
-      botReply = botReply.replace(/(\d+\.\s)/g, '\n$1');
-      botReply = botReply.replace(/([a-zA-Z]\)\s)/g, '\n$1');
-      botReply = botReply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-      botReply = botReply.replace(/-\s/g, '\n- ');
-
-      setMessages([...newMessages, { sender: 'bot', text: botReply }]);
+      const response = await axios.post('http://127.0.0.1:8000/get_answer/', { query: message, session_id: selectedSession});
+      const botReply = response.data.results;
+      // Thêm câu trả lời của bot vào UI
+      setMessages((prevMessages) => [...prevMessages, { sender: 'bot', text: botReply }]);
     } catch (error) {
-      console.error('Error getting response from server:', error);
-      setMessages([...newMessages, { sender: 'bot', text: 'Xin lỗi, tôi không thể trả lời câu hỏi của bạn lúc này.' }]);
-    } finally {
-      setIsTyping(false);
+      console.error("Error fetching answer:", error);
+      setMessages((prevMessages) => [...prevMessages, { sender: 'bot', text: "Không thể trả lời, vui lòng thử lại sau." }]);
     }
-  };
+};
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = async (event, session_id) => {
     const file = event.target.files[0];
     if (file) {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('session_id', session_id);
+
+      console.log(selectedSession)
   
       try {
         const response = await axios.post('http://127.0.0.1:8000/upload_csv/', formData, {
@@ -81,126 +115,40 @@ function Chatbot() {
     }
   };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const currentTableData = () => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return csvData.slice(startIndex + 1, startIndex + rowsPerPage + 1); // Skip the header row
+  const toggleCsv = () => {
+    setShowCsv(!showCsv); // Đảo ngược trạng thái showCsv khi bấm vào biểu tượng CSV
   };
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  const totalPages = Math.ceil((csvData.length - 1) / rowsPerPage);
+
+  // Toggle hiển thị/ẩn ChatHistory
+  const toggleHistory = () => {
+    setShowHistory((prevShowHistory) => !prevShowHistory);  // Đảo ngược trạng thái showHistory
+  };
+
+  const onCreateChat = () => {
+    // Hành động khi tạo đoạn chat mới (ví dụ: xóa tin nhắn cũ hoặc thêm session mới)
+    setMessages([]); // Reset tin nhắn
+    const newSession = {
+      session_id: `session${Math.random().toString(36).substr(2, 9)}`, // Tạo session_id ngẫu nhiên
+    };
+    setSessions(prevSessions => [newSession, ...prevSessions]);
+    setSelectedSession(newSession.session_id);
+    console.log('Tạo đoạn chat mới');
+  };
 
   return (
     <div className="chatbot-wrapper">
-      <div className="chatbot-header-bar">
-        <button className="toggle-history-button" onClick={toggleHistoryVisibility}>
-          <img src={historyIcon} alt="Toggle History" />
-        </button>
-        <div className="chatbot-header">Chatbot Tư Vấn Luật Hôn Nhân Và Gia Đình</div>
-        <button className="toggle-csv-button" onClick={toggleCsvVisibility}>
-          <img src={csvIcon} alt="Toggle CSV" />
-        </button>
-      </div>
-
+      <ChatHeader onToggleCsv={toggleCsv} onToggleHistory={toggleHistory} onCreateChat={onCreateChat}/>
       <div className="chatbot-content">
-        {isHistoryVisible && (
-          <div className="chat-history">
-            <div className="chat-history-header">Lịch sử chat</div>
-            <ul className="chat-history-list">
-              <li className="chat-history-item">Lịch sử 1</li>
-              <li className="chat-history-item">Lịch sử 2</li>
-            </ul>
-          </div>
-        )}
 
-        <div className={`chatbot-container ${!isCsvVisible ? 'expanded' : ''}`}>
-          <div className="chatbot-main">
-            <div className="chatbot-messages">
-              {messages.map((message, index) => (
-                <div key={index} className={`message-container ${message.sender}`}>
-                  {message.sender === 'bot' ? (
-                    <img src={robotIcon} alt="Bot Icon" className="message-icon" />
-                  ) : (
-                    <img src={userIcon} alt="User Icon" className="message-icon" />
-                  )}
-                  <div className={`message ${message.sender}`}>
-                    {message.sender === 'bot' ? (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: message.text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br />'),
-                        }}
-                      />
-                    ) : (
-                      <pre>{message.text}</pre>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+        {showHistory && <ChatHistory sessions={sessions} onSessionClick={onSessionClick} />}
+        {/* <ChatHistory /> */}
+        <ChatMain messages={messages} isTyping={false} onSendMessage={handleSendMessage} />
 
-            {isTyping && (
-              <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            )}
+        {showCsv && (<CsvContainer csvData={csvData} 
+        onFileUpload={(event) => handleFileUpload(event, selectedSession)} 
+        rowsPerPage={10} />)}
 
-            <div className="chatbot-input">
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Nhập câu hỏi của bạn..."
-              />
-              <button onClick={handleSendMessage}>Gửi</button>
-            </div>
-          </div>
-        </div>
-
-        {isCsvVisible && (
-          <div className="csv-container">
-            <h3>Upload File CSV</h3>
-            <input type="file" accept=".csv" onChange={handleFileUpload} />
-            {csvData.length > 0 && (
-              <div className="csv-table-wrapper">
-                <table className="csv-table">
-                  <thead>
-                    <tr>
-                      {csvData[0].map((header, index) => (
-                        <th key={index}>{header}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentTableData().map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex}>{cell}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="pagination">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      className={currentPage === i + 1 ? 'active' : ''}
-                      onClick={() => paginate(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        
       </div>
     </div>
   );

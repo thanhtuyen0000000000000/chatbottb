@@ -6,7 +6,7 @@ from langchain.prompts.chat import (
 from langchain.chains import LLMChain
 import os
 from dotenv import load_dotenv
-from class_generate_sql import GenerateSQL
+from classSQL import GenerateSQL
 # from LLM_classify import Classify
 # Tải biến môi trường
 load_dotenv()

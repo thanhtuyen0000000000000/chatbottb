@@ -1,26 +1,20 @@
 #Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-# .\venv\Scripts\Activate
-from fastapi.responses import StreamingResponse
-from asyncio import sleep
+# .\.venv\Scripts\Activate
 from fastapi import FastAPI, HTTPException
+from fastapi import Form
 from pydantic import BaseModel
-from typing import List, Dict
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_elasticsearch import ElasticsearchRetriever
-from langchain_huggingface import HuggingFaceEmbeddings
-import logging
-import re
 from LLM import GPTHandler
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 import csv
 import io
-import pandas as pd
-from tempfile import NamedTemporaryFile
 from classSQLs import SQLiteManager
 import os
+from datetime import datetime
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
+
 app = FastAPI()
 
 
@@ -32,14 +26,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Kết nối MongoDB
+uri = "mongodb+srv://thungaho0106:ZUBvDg7FhyxpxKd4@qaotd.f7fya.mongodb.net/?retryWrites=true&w=majority&ssl=true"
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+db = client["QAoTD"]
+questions_collection = db["questions"]
+answers_collection = db["answers"]
+files_collection = db["files"]
 
 LLM = GPTHandler()
 
 # Request model
 class QueryRequest(BaseModel):
     query: str
-
-embedding = HuggingFaceEmbeddings(model_name="bkai-foundation-models/vietnamese-bi-encoder")
 
 LLM = GPTHandler()
 UPLOAD_DIR = "upload_csv"
@@ -51,13 +51,15 @@ uploaded_data = {"file_path": None, "db_path": None}
 # Request model
 class QueryRequest(BaseModel):
     query: str
+    session_id: str 
 
 class FileCheckRequest(BaseModel):
     filename: str
+    
 
 # Upload file
 @app.post("/upload_csv/")
-async def upload_csv(file: UploadFile = File(...)):
+async def upload_csv(file: UploadFile = File(...), session_id: str = Form(None)):
     try:
         if not file.filename.endswith(".csv"):
             raise HTTPException(status_code=400, detail="Uploaded file is not a CSV.")
@@ -98,6 +100,16 @@ async def upload_csv(file: UploadFile = File(...)):
         # Store the SQLite database path globally
         uploaded_data["db_path"] = result_message
 
+        # Lưu đường dẫn tệp và session_id vào collection `files`
+        file_data = {
+            "session_id": session_id,
+            "file_path": file_path,
+            "filename": file.filename,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        files_collection.insert_one(file_data)
+
         return {"headers": headers, "data": data}
 
     except Exception as e:
@@ -106,15 +118,71 @@ async def upload_csv(file: UploadFile = File(...)):
             content={"message": f"Error processing CSV file: {str(e)}"}
         )
 
-
-
-
+@app.get("/get_sessions/")
+async def get_sessions():
+    try:
+        sessions = list(files_collection.find({}, {"_id": 0, "session_id": 1}))
+        return {"sessions": sessions}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Error retrieving sessions: {str(e)}"})
+    
 # retrieve_keyword = retrieval_keyword()
 # retrieve_embedding= retrieval_embedding()
 # FastAPI route to get an answer from Elasticsearch
+
+@app.get("/get_session_data/{session_id}/")
+async def get_session_data(session_id: str):
+    try:
+        # Lấy các câu hỏi theo session_id
+        questions = list(questions_collection.find({"session_id": session_id}))
+        answers = list(answers_collection.find({"session_id": session_id}))
+
+        # Chuyển dữ liệu sang định dạng frontend-friendly
+        session_data = []
+        for question, answer in zip(questions, answers):
+            session_data.append({
+                "query": question["query"],
+                "answer": answer["answer"],
+                "timestamp": question["timestamp"]
+            })
+
+        file_data = files_collection.find_one({"session_id": session_id})
+        print("Adfdf", file_data)
+        if file_data:
+            print(0)
+            # Lấy file cuối cùng
+            file_path = file_data["file_path"]
+            print(2)
+            filename = file_data["filename"]
+            print(3)
+
+            # Đọc nội dung file nếu cần
+            with open(file_path, "r", encoding="utf-8") as f:
+                csv_reader = csv.reader(f)
+                rows = list(csv_reader)
+                headers = rows[0] if rows else []
+                data = rows[1:] if len(rows) > 1 else []
+        else:
+            filename, headers, data = None, [], []
+
+        return {
+            "session_id": session_id,
+            "data": session_data,
+            "file_info": {
+                "filename": filename,
+                "headers": headers,
+                "data": data
+            }
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Error retrieving session data: {str(e)}"})
+
 @app.post("/get_answer/")
 async def get_answer(request: QueryRequest):
     search_query = request.query
+    session_id = request.session_id
+
     if uploaded_data["file_path"] is None:
         print("no data")
         # return {"message": "no data"}
@@ -148,7 +216,30 @@ async def get_answer(request: QueryRequest):
 
             final_answer = LLM.answerer.answrer_embed(search_query,sql_script,results,4)
             print(final_answer)
-            # Trả về kết quả
+
+# Tạo session_id và timestamp
+
+            timestamp = datetime.utcnow().isoformat()
+
+            # Lưu câu hỏi vào collection `questions`
+            question_data = {
+                "session_id": session_id,
+                "query": search_query,
+                "timestamp": timestamp
+            }
+            question_id = questions_collection.insert_one(question_data).inserted_id
+
+            # Lưu câu trả lời vào collection `answers`
+            answer_data = {
+                "session_id": session_id,
+                "question_id": str(question_id),
+                "sql_script": cleaned_output,
+                "result": results,
+                "answer": final_answer,
+                "timestamp": timestamp
+            }
+            answers_collection.insert_one(answer_data)
+
             return {"results": final_answer}
 
         except Exception as e:
