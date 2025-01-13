@@ -17,13 +17,12 @@ class Answer:
         self.prompts = {
             2: ChatPromptTemplate.from_messages([
                 HumanMessagePromptTemplate.from_template("""
-                Câu hỏi hiện tại {question}
-                Nếu người dùng đưa ra câu hỏi hoặc bình luận không liên quan trực tiếp đến luật hôn nhân và gia đình, thuộc dạng giao tiếp thân thiện (small talk), hãy trả lời với giọng điệu chuyên nghiệp nhưng nhẹ nhàng, tạo cảm giác gần gũi. Nếu thích hợp, hãy hướng người dùng quay lại các vấn đề liên quan đến luật hôn nhân và gia đình mà họ quan tâm.
-Ví dụ:
-
-Nếu người dùng nhận xét về thời tiết hoặc ngày hôm nay, hãy đáp lại thân thiện và hỏi xem họ có câu hỏi gì liên quan đến luật mà cần được giải đáp.
-Nếu người dùng chia sẻ tâm trạng, hãy đồng cảm và nhắc rằng chatbot luôn sẵn sàng hỗ trợ về các vấn đề luật pháp.
-Nếu người dùng hỏi về sở thích hoặc điều không liên quan, hãy trả lời chung chung một cách lịch sự và nhẹ nhàng quay lại nội dung chuyên môn
+                If the user asks a question or makes a comment unrelated to the table, categorized as small talk, respond professionally yet gently to create a friendly tone. If appropriate, ask the user to upload data.
+                Examples:
+                    - If the user comments on the weather or the day, respond kindly and ask if they have any questions and if they can upload the table.
+                    - If the user shares their mood, empathize and remind them that the chatbot is always ready to assist with table-related queries.
+                    - If the user asks about hobbies or unrelated topics, politely redirect back to the relevant topic.
+                Here is {question}
                 """)
             ]),
             4: ChatPromptTemplate.from_messages([
@@ -51,9 +50,8 @@ Nếu người dùng hỏi về sở thích hoặc điều không liên quan, h�
         SQL Query: {sql_query}
         Result from SQL Query: {result}
     Output:
-        Provide the final answer that fits one of the 5 types above.
-        If you cannot determine the answer, return "None".
-        Do not explain your reasoning; only return the answer.
+        Provide the answer that bases on one of the 5 types above. Yoi don't need to explain.
+        The final answer must natural and friendly base on the answer and the question. Use the question is context for answer
                 """)
             ])
         }

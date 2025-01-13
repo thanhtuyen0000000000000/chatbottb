@@ -1,39 +1,70 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; /* Đảm bảo chiếm đủ chiều cao */
+  overflow: hidden; /* Ẩn thanh cuộn */
+}
+
+
 .chatbot-wrapper {
   display: flex;
   flex-direction: column;
-  height: 99vh;
-  background-color: #e7eaef;
+  height: 100vh;
+  /* background-color: #e7eaef; */
   /* font-family: Arial, sans-serif; */
   font-family: Arial, Arial;
+  
 }
 
 .chatbot-header-bar {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Tạo khoảng cách đều giữa các nhóm nút */
   align-items: center;
-  padding: 15px;
+  padding: 3px;
   background-color: #6f8aa8;
   color: #ffffff;
   flex-shrink: 0; /* Giữ cố định chiều cao header */
+  font-size: 30px;
+}
+
+.left-buttons {
+  display: flex; /* Nhóm các nút bên trái */
+  gap: 0px; /* Khoảng cách giữa các nút */
+}
+
+.create-chat-button img{
+  width: 30px;
+  height: 30px;
+}
+.toggle-history-button img {
+  width: 40px;
+  height: 40px;
+}
+
+.list-data-button img {
+  width: 40px;
+  height: 40px;
+}
+
+.create-chat-button,
+.toggle-history-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.toggle-csv-button img {
+  width: 40px;
+  height: 40px;
 }
 
 
-.toggle-history-button,
 .toggle-csv-button {
   background: none;
   border: none;
   cursor: pointer;
 }
-.toggle-history-button img 
-{
-  width: 40px;
-  height: 40px;
-}
 
-.toggle-csv-button img {
-  width: 50px;
-  height: 50px;
-}
 
 .chatbot-content {
   display: flex;
@@ -84,10 +115,11 @@
 
 .chatbot-container {
   flex: 1;
+  order: 2;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Đảm bảo khu vực giữ nguyên kích thước */
   height: 100%; /* Đảm bảo giữ đúng chiều cao của màn hình */
+  
 }
 
 /* .chatbot-container.expanded {
@@ -95,18 +127,20 @@
 } */
 
 .chatbot-main {
+  width: 80%;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   padding: 10px;
-  
+  background-color: #e7eaef;
 }
 
 .chatbot-messages {
   flex-grow: 1;
   overflow-y: auto; /* Quan trọng để hiển thị thanh cuộn */
+  overflow-x: hidden; /* Loại bỏ cuộn ngang nếu có */
   padding: 10px;
-  max-height: calc(100vh - 160px); /* Giới hạn chiều cao để tránh tràn màn hình */
+  max-height: calc(100vh - 120px); /* Giới hạn chiều cao để tránh tràn màn hình */
   box-sizing: border-box;
 }
 
@@ -115,7 +149,7 @@
 }
 
 .chatbot-messages::-webkit-scrollbar-track {
-  background: #d4e0f6; /* Màu nền của track (khu vực thanh cuộn chạy trên đó) */
+  background: #e7eaef; /* Màu nền của track (khu vực thanh cuộn chạy trên đó) */
   border-radius: 10px; /* Làm tròn track */
 }
 
@@ -138,13 +172,15 @@
 }
 .message-container.user {
   justify-content: flex-end;
+  display: flex;
+  max-width: 100%; /* Đảm bảo tin nhắn không vượt quá chiều rộng container cha */
 }
 .message-container.bot {
   justify-content: flex-start;
 }
 
 .message-container.user .message-icon {
-  order: 3; /* Ensures the icon appears after the user message */
+  order: 2; /* Ensures the icon appears after the user message */
 }
 
 .message-container.bot .message-icon {
@@ -172,6 +208,8 @@
   font-size: 16px; /* Increase font size */
   line-height: 1.5; /* Improve readability */
   word-wrap: break-word;
+  overflow-wrap: break-word; /* Ensure long words break and wrap properly */
+  white-space: normal; /* Allow line breaks */
   font-family: Arial, sans-serif; /* Font chữ đồng nhất */
   font-size: 16px; /* Kích thước font chữ */
   line-height: 1.5; /* Dòng chữ dễ đọc */
@@ -179,9 +217,23 @@
 }
 
 .message.user {
-  background-color: #e6f7ff;
-  /* align-self: flex-end; */
-  /* font-family: Arial, Helvetica, sans-serif; */
+  background-color: #e6f7ff; /* Màu nền xanh nhạt */
+  align-self: flex-end;
+  white-space: normal; /* Cho phép xuống hàng khi nội dung dài */
+  word-wrap: break-word; /* Tự động ngắt dòng nếu từ dài quá */
+  overflow-wrap: break-word; /* Đảm bảo nội dung dài không tràn ra ngoài */
+  max-width: 50%; /* Giới hạn chiều rộng tối đa của tin nhắn */
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 1.5;
+  box-sizing: border-box; /* Đảm bảo padding không ảnh hưởng đến kích thước khung */
+}
+
+.message.user pre {
+  white-space: pre-wrap; /* Giữ nguyên khoảng trắng nhưng cho phép xuống dòng */
+  word-break: break-word; /* Ngắt dòng khi từ quá dài */
+  overflow-wrap: break-word; /* Dự phòng cho các trình duyệt khác */
 }
 
 .message.bot {
@@ -229,7 +281,7 @@
 .chatbot-input input {
   flex-grow: 1;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   border-radius: 5px;
 }
 

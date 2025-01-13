@@ -141,7 +141,7 @@ function Chatbot() {
         <button className="toggle-history-button" onClick={toggleHistoryVisibility}>
           <img src={historyIcon} alt="Toggle History" />
         </button>
-        <div className="chatbot-header">Chatbot Tư Vấn Luật Hôn Nhân Và Gia Đình</div>
+        <div className="chatbot-header">CHATBOT HỎI ĐÁP TRÊN DỮ LIỆU DẠNG BẢNG</div>
         <button className="toggle-csv-button" onClick={toggleCsvVisibility}>
           <img src={csvIcon} alt="Toggle CSV" />
         </button>
