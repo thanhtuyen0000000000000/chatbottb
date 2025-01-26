@@ -2,8 +2,8 @@
 import  { useState, useEffect } from 'react'; 
 import ChatHeader from './ChatHeader';
 import ChatHistory from './ChatHistory';
- import ChatMain from './ChatMain';
-import CsvContainer from './CsvContainer';
+import ChatMain from './ChatMain';
+import CSVContainer from './CsvContainer';
 import './Chatbot.css';
 import axios from 'axios';
 
@@ -12,12 +12,12 @@ function Chatbot() {
 
   const [messages, setMessages] = useState([]);  // Khởi tạo mảng rỗng cho messages
   const [csvData, setCsvData] = useState([]); // Khởi tạo csvData là mảng rỗng
-  const [showCsv, setShowCsv] = useState(false); // Trạng thái để điều khiển việc ẩn/hiện CsvContainer
+  const [showCsv, setShowCsv] = useState(true); // Trạng thái để điều khiển việc ẩn/hiện CsvContainer
   const [showHistory, setShowHistory] = useState(true);  // Trạng thái để hiển thị/ẩn ChatHistory
 
   const [sessions, setSessions] = useState([]); // Mô phỏng data sessions
   const [selectedSession, setSelectedSession] = useState(null);
-
+  
   useEffect(() => {
     const fetchSessions = async () => {
       try {
@@ -140,11 +140,11 @@ function Chatbot() {
       <ChatHeader onToggleCsv={toggleCsv} onToggleHistory={toggleHistory} onCreateChat={onCreateChat}/>
       <div className="chatbot-content">
 
-        {showHistory && <ChatHistory sessions={sessions} onSessionClick={onSessionClick} />}
+        {showHistory && <ChatHistory sessions={sessions} onSessionClick={onSessionClick}/>}
         {/* <ChatHistory /> */}
         <ChatMain messages={messages} isTyping={false} onSendMessage={handleSendMessage} />
 
-        {showCsv && (<CsvContainer csvData={csvData} 
+        {showCsv && (<CSVContainer csvData={csvData} 
         onFileUpload={(event) => handleFileUpload(event, selectedSession)} 
         rowsPerPage={10} />)}
 

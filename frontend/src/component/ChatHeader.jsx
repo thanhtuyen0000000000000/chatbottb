@@ -6,6 +6,7 @@ import createIcon from '../asset/create_icon.png';
 function ChatHeader({ onToggleCsv, onToggleHistory, onCreateChat }) {
   return (
     <div className="chatbot-header-bar">
+      <div className="left-buttons">
       <button className="toggle-history-button" onClick={onToggleHistory}>
         <img src={historyIcon} alt="Toggle History" />
       </button>
@@ -13,8 +14,9 @@ function ChatHeader({ onToggleCsv, onToggleHistory, onCreateChat }) {
       <button className="create-chat-button" onClick={onCreateChat}>
         <img src={createIcon} alt="Create New Chat Icon" />
     </button>
-
-      <div className="chatbot-header">Chatbot Tư Vấn Luật Hôn Nhân Và Gia Đình</div>
+    </div>
+      <div className="chatbot-header">Chatbot hỏi đáp trên dữ liệu dạng bảng</div>
+      
       <button className="toggle-csv-button" onClick={onToggleCsv}>
         <img src={csvIcon} alt="Toggle CSV" />
       </button>
